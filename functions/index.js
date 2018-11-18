@@ -1,28 +1,27 @@
 const functions = require("firebase-functions");
 const gcs = require('@google-cloud/storage')();
-const admin = require('firebase-admin');
+// const admin = require('firebase-admin');
 admin.initializeApp();
-const db = admin.database();
+// const db = admin.database();
 // const gcs = require('@google-cloud/storage')();
 // const spawn = require('child-process-promise').spawn;
-const path = require('path');
-const os = require('os');
-const fs = require('fs');
-const nodemailer = require('nodemailer');
-const secureCompare = require('secure-compare');
-const moment = require('moment');
+// const path = require('path');
+// const os = require('os');
+// const fs = require('fs');
 const mybucket ="abet-test.appspot.com";
 
 
 exports.uploadFile = functions.storage.bucket(mybucket).object().onFinalize((object, context) => {
     // [START eventAttributes]
     console.log(event.data.name);
+    console.log(object);
+    console.log(context);
     const fileBucket = object.bucket; // The Storage bucket that contains the file.
     let filePath = object.name; // File path in the bucket.
     const contentType = object.contentType; // File content type.
     const resourceState = object.resourceState; // The resourceState is 'exists' or 'not_exists' (for file/folder deletions).
     const metageneration = object.metageneration; // Number of times metadata has been generated. New objects have a value of 1.
-
+    console.log(filePath);
     // [END eventAttributes]
     // console.log(fileBucket);
     var path = filePath.slice(0, filePath.lastIndexOf('/'));
@@ -30,7 +29,7 @@ exports.uploadFile = functions.storage.bucket(mybucket).object().onFinalize((obj
     console.log("Running function***********: " + path + "  file:" + file);
     console.log("using v0.2");
     // write log to database based on the change of storage
-    
+    return;
     firebase.database().ref(`documents`).update(
         {
             'file':downloadURL
@@ -41,136 +40,136 @@ exports.uploadFile = functions.storage.bucket(mybucket).object().onFinalize((obj
 });
 
 
-exports.onUpload = functions.database.ref(`a-user/$userID/onUpload`)
-    .onCreate((snap, context) => {
-        console.log("###get in csv handler");
-        let userID = context.params.userID;
-        const data = snap.val();
-        console.log(data);
-        let uniqueID = data.uniqueID;
-        let topic = data.topic;
-        let timeStamp = data.dateTime;
-        let tags = data.tags;
-        let hashedPass = data.hashedPass;
-        // console.log(tempFilePath);
-        firebase.database().ref(`uniqueNameKey`).update(
-                {
-                    'uniqueID':{
-                        'topic':topic,
-                        'tags':tags,
-                        'timeStamp':timeStamp
-                    }
-                }
-                );
-        let saltNum = Math.rand()*10 + 3; //rand num btw 3 and 12
-        let i = saltNum;
-        while(i > 0){
-            hashedPass = SHA512(hashedPass);
-            i--;   
-        }
-        firebase.database().ref(`passwords`).update(
-            {
-                uniqueID:{
-                    'hashedPass': hashedPass,
-                    'saltNum': saltNum 
-                }
-            }
-            ).then(
-                (error)=>{
-                    console.log(error);
-                },(success)=>{
-                    firebase.database().ref(`a-user/${userID}/onUpload`).remove();
-                }
-            );
-    });
+// exports.onUpload = functions.database.ref(`a-user/$userID/onUpload`)
+//     .onCreate((snap, context) => {
+//         console.log("###get in csv handler");
+//         let userID = context.params.userID;
+//         const data = snap.val();
+//         console.log(data);
+//         let uniqueID = data.uniqueID;
+//         let topic = data.topic;
+//         let timeStamp = data.dateTime;
+//         let tags = data.tags;
+//         let hashedPass = data.hashedPass;
+//         // console.log(tempFilePath);
+//         firebase.database().ref(`uniqueNameKey`).update(
+//                 {
+//                     'uniqueID':{
+//                         'topic':topic,
+//                         'tags':tags,
+//                         'timeStamp':timeStamp
+//                     }
+//                 }
+//                 );
+//         let saltNum = Math.rand()*10 + 3; //rand num btw 3 and 12
+//         let i = saltNum;
+//         while(i > 0){
+//             hashedPass = SHA512(hashedPass);
+//             i--;   
+//         }
+//         firebase.database().ref(`passwords`).update(
+//             {
+//                 uniqueID:{
+//                     'hashedPass': hashedPass,
+//                     'saltNum': saltNum 
+//                 }
+//             }
+//             ).then(
+//                 (error)=>{
+//                     console.log(error);
+//                 },(success)=>{
+//                     firebase.database().ref(`a-user/${userID}/onUpload`).remove();
+//                 }
+//             );
+//     });
 
 
-exports.onDownload = functions.database.ref(`a-user/$userID/onDownload`)
-    .onCreate((snap, context) => {
-        console.log("###get in csv handler");
-        let userID = context.params.userID;
-        const data = snap.val();
-        console.log(data);
-        let uniqueID = data.uniqueID;
-        let hashedPass = data.hashedPass;
-        let secret = {};
-        firebase.database().ref(`passwords/${uniqueID}`).once('value').then(function(snapshot){
-            secret = snapshot.val();
-        }).then(
-            (error)=>{
-                console.log(error);
-            },(success)=>{
-                for(let i = secret['saltNum']; i>0;i--){
-                    hashedPass = SHA512(hashedPass);
-                }
-                if(!(hashedPass === secret['hashedPass'])){
-                    console.log(`improper access: ${hashedPass} does not match ${secret['hashedPass']}`);
-                    return;
-                } else{
-                    let dURL;
-                    firebase.database().ref(`documents/${uniqueID}`).once('value').then(function(snapshot){
-                        dURL = snapshot.val();
-                    }).then(
-                        (error)=>{
-                            console.log(error);
-                        },(success)=>{
-                            firebase.database().ref(`a-user/${userID}/onDownload/`).update(
-                                {
-                                    'downloadURL':dURL
-                                }
-                            );
-                        }
-                    );
-                }
-            }
-        );
-    });
+// exports.onDownload = functions.database.ref(`a-user/$userID/onDownload`)
+//     .onCreate((snap, context) => {
+//         console.log("###get in csv handler");
+//         let userID = context.params.userID;
+//         const data = snap.val();
+//         console.log(data);
+//         let uniqueID = data.uniqueID;
+//         let hashedPass = data.hashedPass;
+//         let secret = {};
+//         firebase.database().ref(`passwords/${uniqueID}`).once('value').then(function(snapshot){
+//             secret = snapshot.val();
+//         }).then(
+//             (error)=>{
+//                 console.log(error);
+//             },(success)=>{
+//                 for(let i = secret['saltNum']; i>0;i--){
+//                     hashedPass = SHA512(hashedPass);
+//                 }
+//                 if(!(hashedPass === secret['hashedPass'])){
+//                     console.log(`improper access: ${hashedPass} does not match ${secret['hashedPass']}`);
+//                     return;
+//                 } else{
+//                     let dURL;
+//                     firebase.database().ref(`documents/${uniqueID}`).once('value').then(function(snapshot){
+//                         dURL = snapshot.val();
+//                     }).then(
+//                         (error)=>{
+//                             console.log(error);
+//                         },(success)=>{
+//                             firebase.database().ref(`a-user/${userID}/onDownload/`).update(
+//                                 {
+//                                     'downloadURL':dURL
+//                                 }
+//                             );
+//                         }
+//                     );
+//                 }
+//             }
+//         );
+//     });
 
-exports.onPassChange = functions.database.ref(`a-user/$userID/onPassChange`)
-    .onCreate((snap, context) => {
-        console.log("###get in csv handler");
-        let userID = context.params.userID;
-        const data = snap.val();
-        console.log(data);
-        let uniqueID = data.uniqueID;
-        let hashedPass = data.hashedPass;
-        let newHashedPass = data.newHashedPass;
-        let secret = {};
-        firebase.database().ref(`passwords/${uniqueID}`).once('value').then(function(snapshot){
-            secret = snapshot.val();
-        }).then(
-            (error)=>{
-                console.log(error);
-            },(success)=>{
-                for(let i = secret['saltNum']; i>0;i--){
-                    hashedPass = SHA512(hashedPass);
-                }
-                if(!(hashedPass === secret['hashedPass'])){
-                    console.log(`improper access: ${hashedPass} does not match ${secret['hashedPass']}`);
-                    return;
-                } else{
-                    let randI = Math.rand()*10 + 3;
-                    for(let i=randI;i>0;i--){
-                        newHashedPass = SHA512(newHashedPass);
-                    }
-                    firebase.database().ref(`passwords/`).update(
-                        {
-                            'uniqueID':{
-                                'hashedPass': newHashedPass,
-                                'saltNum': randI 
-                            }
-                        }
-                    ).then(
-                        (error)=>{
-                            console.log(error);
-                        },(success)=>{
-                            firebase.database().ref(`a-user/${userID}/onPassChange`).remove();
-                        }
-                    );
-                }
-            }
-        );
-    });
+// exports.onPassChange = functions.database.ref(`a-user/$userID/onPassChange`)
+//     .onCreate((snap, context) => {
+//         console.log("###get in csv handler");
+//         let userID = context.params.userID;
+//         const data = snap.val();
+//         console.log(data);
+//         let uniqueID = data.uniqueID;
+//         let hashedPass = data.hashedPass;
+//         let newHashedPass = data.newHashedPass;
+//         let secret = {};
+//         firebase.database().ref(`passwords/${uniqueID}`).once('value').then(function(snapshot){
+//             secret = snapshot.val();
+//         }).then(
+//             (error)=>{
+//                 console.log(error);
+//             },(success)=>{
+//                 for(let i = secret['saltNum']; i>0;i--){
+//                     hashedPass = SHA512(hashedPass);
+//                 }
+//                 if(!(hashedPass === secret['hashedPass'])){
+//                     console.log(`improper access: ${hashedPass} does not match ${secret['hashedPass']}`);
+//                     return;
+//                 } else{
+//                     let randI = Math.rand()*10 + 3;
+//                     for(let i=randI;i>0;i--){
+//                         newHashedPass = SHA512(newHashedPass);
+//                     }
+//                     firebase.database().ref(`passwords/`).update(
+//                         {
+//                             'uniqueID':{
+//                                 'hashedPass': newHashedPass,
+//                                 'saltNum': randI 
+//                             }
+//                         }
+//                     ).then(
+//                         (error)=>{
+//                             console.log(error);
+//                         },(success)=>{
+//                             firebase.database().ref(`a-user/${userID}/onPassChange`).remove();
+//                         }
+//                     );
+//                 }
+//             }
+//         );
+//     });
 
 
 // exports.onMettaChange = functions.database.ref(`a-user/$userID/onMettaChange`)
