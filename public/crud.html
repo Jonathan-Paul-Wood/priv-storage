@@ -1,0 +1,28 @@
+<html>
+  <title>Anonymous Cloud Storage</title>
+  <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyBkAb6ca8R12irBPY-BElHXiiBqNDyurqg",
+      authDomain: "priv-storage.firebaseapp.com",
+      databaseURL: "https://priv-storage.firebaseio.com",
+      projectId: "priv-storage",
+      storageBucket: "priv-storage.appspot.com",
+      messagingSenderId: "315696012929"
+    };
+    firebase.initializeApp(config);
+  </script>
+  <script defer src="./crud.js"></script>
+  <script defer src="./signout.js"></script>
+  <body>
+    <h1>Annonymously Search, Upload, and Access Files</h1>
+    <div id="nav">
+      <button id="upload">Back to Search</button>
+      <button id="logout">Logout</button>
+    </div>
+    <div id="oauth">
+      <button id="login">Login Annonymously</button>
+    </div>
+  </body>
+</html>
