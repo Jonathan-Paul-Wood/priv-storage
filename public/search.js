@@ -1,18 +1,19 @@
 let files;
 firebase.database().ref(`uNK`).once('value').then(function(snap){
     files = snap.val();
+    console.log(files);
 }).then(
-    (error)=>{
-        console.log(error);
-    }, (success)=>{
+    (success)=>{
        for(let file in files){
-
-           document.getElementById("firebaseTarget").innerHTML = `
-           <td>${file}</td>
-           <td>${files[file]['topic']}</td>
-           <td>${files[file]['tags']}</td>
-           <td>${files[file]['timeStamp']}</td>
-           <td><a id="download-${file}">Download</td>
+            console.log(file);
+           document.getElementById("firebaseTarget").innerHTML += `
+           <tr>
+               <td>${file}</td>
+               <td>${files[file]['topic']}</td>
+               <td>${files[file]['tags']}</td>
+               <td>${files[file]['timeStamp']}</td>
+               <td><a id="download-${file}">Download</td>
+           </tr>
             `;
             document.getElementById(`download-${file}`).addEventListener('click', function(){
                 document.getElementById("getDownloadFile").innerHTML = `
@@ -22,16 +23,13 @@ firebase.database().ref(`uNK`).once('value').then(function(snap){
                 `;
                 document.getElementById("getDoc").addEventListener('click', function(){
                     let hashedPass = SHA512(document.getElementById("docPass").value);
-                    firebase.database().ref(`a-user/${storageSession.getItem('priv-storage-user')}/onDownload`).set({
+                    firebase.database().ref(`a-user/${sessionStorage.getItem('priv-storage-user')}/onDownload`).set({
                         'uniqueID':file,
                         'hashedPass':hashedPass
-                    }).then(
-                        (error)=>{
-                            console.log(error);
-                        }, (success)=>{
-                            let theSwankyURL;
-                            firebase.database().ref(`a-user/${storageSession.getItem('priv-storage-user')}/onDownload`).on('value', function(snip){
-                                let data = snip.val();
+                    }).then((success)=>{
+                            let data;
+                            firebase.database().ref(`a-user/${sessionStorage.getItem('priv-storage-user')}/onDownload`).on('value', function(snip){
+                                data = snip.val();
                                 if(data['downloadURL'] != null){
                                     let win = window.open(data['downloadURL'], '_blank');
                                     win.focus();
@@ -43,7 +41,7 @@ firebase.database().ref(`uNK`).once('value').then(function(snap){
             });
        }
         $(document).ready( function () {
-            $('#myTable').DataTable();
+            let table = $('#datatable').DataTable();
         } );
     }
 )
