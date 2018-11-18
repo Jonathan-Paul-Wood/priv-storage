@@ -42,6 +42,9 @@ firebase.database().ref(`uNK`).once('value').then(function(snap){
                 });
             });
        }
+        $(document).ready( function () {
+            $('#myTable').DataTable();
+        } );
     }
 )
 
